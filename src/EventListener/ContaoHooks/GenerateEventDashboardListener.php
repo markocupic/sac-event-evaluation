@@ -79,7 +79,7 @@ class GenerateEventDashboardListener
             ->setLinkAttribute('role', 'button')
             ->setLinkAttribute('class', 'tl_submit')
             ->setLinkAttribute('target', '_blank')
-            //->setLinkAttribute('accesskey', 'm')
+            ->setLinkAttribute('rel', 'noopener')
             ->setLinkAttribute('title', 'Event Auswertungen herunterladen')
         ;
     }
