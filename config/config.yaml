@@ -12,7 +12,7 @@ markocupic_sac_event_feedback:
     # Default configuration
     default:
       name: 'default'
-      # Allow Allow feedbacks up to 10 days after event end date
+      # Allow feedbacks up to 10 days after event end date
       feedback_expiration_time: 60 #days
       # Send reminders: 0 day (immediatly), 14 days, 28 days
       # after "tl_calendar_events.member.hasParticipated" has been set to "true"

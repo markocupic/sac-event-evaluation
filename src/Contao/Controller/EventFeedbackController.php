@@ -5,7 +5,7 @@ declare(strict_types=1);
 /*
  * This file is part of SAC Event Feedback.
  *
- * (c) Marko Cupic 2024 <m.cupic@gmx.ch>
+ * (c) Marko Cupic 2025 <m.cupic@gmx.ch>
  * @license MIT
  * For the full copyright and license information,
  * please view the LICENSE file that was distributed with this source code.
@@ -27,9 +27,9 @@ use Contao\StringUtil;
 use Markocupic\CloudconvertBundle\Conversion\ConvertFile;
 use Markocupic\PhpOffice\PhpWord\MsWordTemplateProcessor;
 use Markocupic\SacEventFeedback\Feedback\Feedback;
-use Markocupic\SacEventToolBundle\Util\CalendarEventsUtil;
 use Markocupic\SacEventToolBundle\Model\CalendarEventsMemberModel;
 use Markocupic\SacEventToolBundle\Security\Voter\CalendarEventsVoter;
+use Markocupic\SacEventToolBundle\Util\CalendarEventsUtil;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -73,7 +73,7 @@ class EventFeedbackController
         $pdfHref = $backend->addToUrl('key=showEventFeedbacksAsPdf');
 
         $arrEvent = $objFeedback->getEvent(false)->row();
-        $arrEvent = array_map(fn($val) => StringUtil::revertInputEncoding((string) $val), $arrEvent);
+        $arrEvent = array_map(static fn ($val) => StringUtil::revertInputEncoding((string) $val), $arrEvent);
 
         return new Response($this->twig->render(
             '@MarkocupicSacEventFeedback/sac_event_feedback.html.twig',

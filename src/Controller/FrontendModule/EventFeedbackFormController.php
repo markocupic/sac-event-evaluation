@@ -23,9 +23,9 @@ use Markocupic\SacEventFeedback\Model\EventFeedbackModel;
 use Markocupic\SacEventFeedback\Session\Attribute\ArrayAttributeBag;
 use Markocupic\SacEventToolBundle\Model\CalendarEventsMemberModel;
 use ReallySimpleJWT\Token;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Terminal42\MultipageFormsBundle\FormManagerFactory;
 
@@ -51,7 +51,7 @@ class EventFeedbackFormController extends AbstractFrontendModuleController
     ) {
     }
 
-    public function __invoke(Request $request, ModuleModel $model, string $section, array $classes = null, PageModel $page = null): Response
+    public function __invoke(Request $request, ModuleModel $model, string $section, array|null $classes = null, PageModel|null $page = null): Response
     {
         if ($this->scopeMatcher->isFrontendRequest($request)) {
             // Get logged in user
