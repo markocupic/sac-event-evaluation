@@ -22,8 +22,8 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Markocupic\SacEventFeedback\EventFeedbackHelper;
 use Markocupic\SacEventFeedback\Model\EventFeedbackReminderModel;
-use Markocupic\SacEventToolBundle\Util\CalendarEventsUtil;
 use Markocupic\SacEventToolBundle\Model\CalendarEventsMemberModel;
+use Markocupic\SacEventToolBundle\Util\CalendarEventsUtil;
 use Psr\Log\LoggerInterface;
 use ReallySimpleJWT\Token;
 use Terminal42\NotificationCenterBundle\NotificationCenter;
@@ -105,17 +105,16 @@ readonly class SendFeedbackReminder
                 [
                     $tstamp,
                     0,
-                    time() - 60,
+                    $tstamp - 60,
                 ],
             );
 
             // Queue competing queries/requests on table "tl_event_feedback_reminder" with "FOR UPDATE" until the transaction is completed.
             // This should prevent competing queries and double emailing
             $result = $this->connection->executeQuery(
-                sprintf('SELECT id FROM tl_event_feedback_reminder WHERE expiration > ? AND executionDate < ? AND dispatched = ? LIMIT 0,%d FOR UPDATE', $limit),
+                sprintf('SELECT id FROM tl_event_feedback_reminder WHERE expiration > ? AND dispatched = ? LIMIT 0,%d FOR UPDATE', $limit),
                 [
-                    time(),
-                    $tstamp - $this->feedbackConfig['send_reminder_execution_delay'],
+                    $tstamp,
                     '',
                 ]
             );
@@ -127,6 +126,18 @@ readonly class SendFeedbackReminder
                     $reminderModel = EventFeedbackReminderModel::findByPk($id);
 
                     if (null !== $reminderModel) {
+                        $configuration = $this->getConfiguration($reminderModel);
+
+                        $delay = 0;
+
+                        if (null !== $configuration) {
+                            $delay = $configuration['send_reminder_execution_delay'] ?? 0;
+                        }
+
+                        if ($reminderModel->executionDate > $tstamp - $delay) {
+                            continue;
+                        }
+
                         $set = [
                             'dispatched' => true,
                             'dispatchTime' => time(),
@@ -143,6 +154,21 @@ readonly class SendFeedbackReminder
             $this->connection->commit();
         } catch (\Exception $e) {
             $this->connection->rollBack();
+        }
+    }
+
+    private function getConfiguration(EventFeedbackReminderModel $eventFeedbackReminderModel): array|null
+    {
+        try {
+            $calendar = CalendarEventsModel::findByPk($eventFeedbackReminderModel->getRelated('pid')->eventId)->getRelated('pid');
+
+            if (null === $calendar) {
+                return null;
+            }
+
+            return $this->feedbackConfig[$calendar->onlineFeedbackConfiguration];
+        } catch (\Exception $e) {
+            return null;
         }
     }
 
@@ -183,7 +209,7 @@ readonly class SendFeedbackReminder
 
     private function generateJwt(CalendarEventsMemberModel $member, EventFeedbackReminderModel $reminder): string
     {
-        $userId = (int) $member->id;
+        $userId = $member->id;
         $expiration = (int) $reminder->expiration;
         $issuer = 'localhost';
 
